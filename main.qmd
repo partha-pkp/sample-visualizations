@@ -1,0 +1,393 @@
+---
+title: "Sample Visualizations"
+author: Partha Koundinya Panguluri
+format: dashboard
+theme: lumen
+
+navbar:
+    right:
+      - icon: github
+        href: https://github.com/partha-pkp/sample-visualizations.git
+---
+
+```{r}
+
+if (!require("pacman")) 
+  install.packages("pacman")
+
+
+pacman::p_load(knitr,tidyverse,lubridate,here,dplyr,ggplot2,ggmap,maps,rnaturalearth,rnaturalearthdata,sf,plotly,caret,glmnet,viridis,rcartocolor,forcats,tidymodels)
+
+```
+
+
+
+```{r}
+## Dataset Setup
+
+elephant <- readxl::read_xlsx(here("elephant_data.xlsx"))
+```
+
+
+
+
+# Example 1 {orientation="columns"}
+
+## Interactive 3D {width="50%"}
+
+
+
+
+
+```{r}
+#| title: "Visualizing the African Savannah Elephant ecosystems - An interactive 3D plot"
+
+#------------------- Installing libraries-------------------------------------
+
+library(circularEV)
+library(rnaturalearth)
+library(ggplot2)
+library(plotly)
+library(ggiraph)
+library(ggshadow)
+
+library(raster)
+library(rayshader)
+library(rgl)
+
+#------------------- Mapping the dataset with the "Africa" dataset in rnaturalearth-------
+
+africa <- ne_countries(scale = "medium", returnclass = "sf", continent = "Africa")
+cnt <- ne_countries(scale = "medium", returnclass = "sf", country = "sudan")
+cnt2 <- ne_countries(scale = "medium", returnclass = "sf", country = "senegal")
+col1 <- c("Angola", "Botswana", "Cameroon", "Chad", "Congo", "Kenya","Malawi",
+          "Mali", "Mozambique", "South Africa", "Tanzania","Uganda", "Zambia", "Zimbabwe")
+#col2 <- c(20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20)
+
+col3 <- c(43459, 101599, 20598, 9799, 9349, 85711, 2991, 3944, 101077, 19809, 268250,
+          10938, 84814, 68851)
+
+eco <- data.frame(col1,col3)
+
+eco2 <- merge(africa, eco, by.x = "name", by.y = "col1")
+
+
+#------------------- Creating the ggplot -------------------------------------
+map <- ggplot() +
+  geom_sf(data = africa) +
+  geom_sf(data= eco2, aes(fill = col3), color = "white", linewidth = 0.5)+
+  guides(fill=guide_legend(title=bquote('Area'~(km^2)), reverse=TRUE)
+         )+
+  theme_void()+
+  theme(
+    plot.background = element_rect(
+      fill = "white",
+      colour = "white"
+    ))  
+# map
+
+#------------------- Converting the 2-D ggplot to 3-D-------------------------------------
+
+map3d <- plot_gg(map,
+                 width=5,
+                 height=5,
+                 scale = 350,
+                 windowsize = c(1000, 1000),
+                 phi = 30,
+                 save_height_matrix = FALSE,
+                 theta = 0,
+                 flat_transparent_bg = TRUE,
+                 invert = FALSE
+                 )
+
+#------------------- Annotating the top countries-------------------------------------
+
+Tanzania_coords <- c(x = 200, y = 520, z = 50)
+rgl::text3d(x = Tanzania_coords[1], y = Tanzania_coords[2], z = Tanzania_coords[3],
+            text = "Tanzania", col = "black", cex = 0.9)
+
+rgl::lines3d(c(200, 200, 200),
+             c(50, 100, 500),
+             c(50, 50, 50),
+             col = "black")
+
+
+
+Botswana_coords <- c(x = 50, y = 420, z = 250)
+rgl::text3d(x = Botswana_coords[1], y = Botswana_coords[2], z = Botswana_coords[3],
+            text = "Botswana", col = "black", cex = 0.9)
+
+rgl::lines3d(c(50, 50, 50),
+             c(50, 100, 400),
+             c(250, 250, 250),
+             col = "black")
+
+
+Mozam_coords <- c(x = 220, y = 320, z = 190)
+rgl::text3d(x = Mozam_coords[1], y = Mozam_coords[2], z = Mozam_coords[3],
+            text = "Mozambique", col = "black", cex = 0.9)
+
+rgl::lines3d(c(220, 220, 220),
+             c(50, 100, 300),
+             c(190, 190, 190),
+             col = "black")
+
+
+kenya_coords <- c(x = 250, y = 270, z = -90)
+rgl::text3d(x = kenya_coords[1], y = kenya_coords[2], z = kenya_coords[3],
+            text = "Kenya", col = "black", cex = 0.9)
+
+rgl::lines3d(c(250, 250, 250),
+             c(50, 100, 250),
+             c(-90, -90, -90),
+             col = "black")
+
+
+
+
+zambia_coords <- c(x = 50, y = 220, z = 150)
+rgl::text3d(x = zambia_coords[1], y = zambia_coords[2], z = zambia_coords[3],
+            text = "Zambia", col = "black", cex = 0.9)
+
+rgl::lines3d(c(50, 50, 50),
+             c(50, 100, 200),
+             c(150, 150, 150),
+             col = "black")
+
+
+# Reference lines
+
+# rgl::lines3d(c(50, 50, 50),
+#              c(50, 100, 500),
+#              c(50, 50, 50),
+#              col = "red")
+# 
+# rgl::lines3d(c(100, 100, 100),
+#              c(50, 100, 500),
+#              c(50, 50, 50),
+#              col = "darkgreen")
+
+
+# render_movie(filename = "final3d.mp4", type = "orbit",
+#              frames = 360,  phi = 35, zoom = 0.8, theta = -90)
+
+
+rgl::rglwidget()
+
+
+```
+
+
+
+
+
+
+## 3D animation {width="50%"}
+
+<center>
+
+<h4 align="center">Animation of the 3D plot</h4>
+<hr>
+<video width="830" height="500" autoplay muted preload="auto" loop>
+<source src="final3d.mp4" type="video/mp4">
+</video>
+
+</center>
+
+
+# Example 2
+
+```{r}
+#| title: "Trends in UFO sightings across all the continents"
+
+#loading packages
+if(!require(pacman))
+  install.packages("pacman")
+pacman::p_load(tidyverse,
+               dplyr,
+               ggplot2,
+               gridExtra,
+               grid,
+               gghighlight,
+               ggrepel,
+               ggiraph)
+ufo <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-06-20/ufo_sightings.csv")
+places <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-06-20/places.csv")
+
+#mutating 'continent' to ufo dataset
+ufo <- ufo |>
+  mutate(
+    continent = case_when(
+      country_code %in% c("US", "MX", "CA", "CR", "GT", "BZ", "BS", "DO", "HT",
+                          "JM", "BM", "SX", "BB", "HN", "LC", "VI", "CU", "PR", 
+                          "SV", "KN", "KY") ~ "North America",
+      country_code %in% c("AU", "NZ", "PW", "SB", "GU", "FJ", "TV") ~ "Australia and Oceania",
+      country_code %in% c("IN", "JP", "PK", "ID", "AM", "MY", "PH", "AE", "MV", 
+                          "TH", "LK", "CN", "KZ", "IQ", "KR", "OM", "JO", "AF",
+                          "TW", "IL", "VN", "IR", "BD", "SA", "KW", "HK", "NP", 
+                          "BN", "SG", "QA", "LA", "BH", "RU", "KH", "LB", "SY", 
+                          "MM", "UZ", "KG", "TL","TR","AZ") ~ "Asia",
+      country_code %in% c("FR", "GB", "DE", "NO", "CH", "BG", "ES", "LT", "HR",
+                          "IE", "NL", "IS", "IT", "FI", "CZ", "EE", "HU", "SE", 
+                          "PT", "PL", "DK", "CY", "BA", "SK", "RS", "RO", "MT", 
+                          "BE", "LV", "AL", "AT", "MK", "GR", "BY", "GE", "SI", 
+                          "LU", "FO", "MD", "UA", "GI", "XK", "ME") ~ "Europe",
+      country_code %in% c("CO", "BR", "VE", "BO", "AR", "TT", "CL", "PE", "EC", 
+                          "UY", "PA", "PY", "GY", "SR") ~ "South America",
+      country_code %in% c("ZA", "MA", "ZW", "AO", "MU", "LS", "NG", "EG", "CM",
+                          "UG", "KE", "DZ", "TD", "BW", "ZM", "TZ", "ET", "TN", 
+                          "SN", "LY", "LR", "GH", "CV", "MW", "SZ") ~ "Africa",
+      TRUE ~ "Antratica"
+    )
+  )
+
+#extracting year from reported_date_time_utc variable
+ufo<-ufo|>
+  mutate(year=year(as.Date.character(reported_date_time_utc)))
+
+#counting by grouping year and country code
+ufo<-ufo|>
+  group_by(year, country_code)|>
+  mutate(count=n())
+#glimpse(ufo)
+
+#plotting Africa data 
+
+ggplot(ufo, aes(x=year,fill = continent)) + 
+  geom_density()+
+  gghighlight()+
+  facet_wrap(~continent, ncol = 2)+
+  xlab("\nYears")+
+  ylab("Density\n")+
+  theme_classic()+
+  coord_cartesian(expand = FALSE)+
+  scale_fill_viridis_d()
+
+  
+```
+
+
+# Example 3 {orientation="columns"}
+
+
+## Image overlay 1  {width="50%"}
+
+<h4 align="center">Image overlay 1 - Sighting UFOs at distinct day-parts</h4>
+
+```{r}
+
+#| title: "Image overlay 1 - Sighting UFOs at distinct day-parts"
+
+
+
+
+# Libraries required
+library(ggplot2)
+library(hrbrthemes)
+library(tidyverse)
+library(ggpubr)
+library(jpeg)
+library(png)
+library(gganimate)
+library(ggiraph)
+
+
+# Loading data
+data <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-06-20/ufo_sightings.csv")
+
+# N=Removing NAs from the data
+noNAData <- na.omit(data)
+
+# Extracting the "day_partcolumn from the dataset"
+dp <- noNAData |>
+ count(day_part)
+
+# Creating  new columns to generate a new dataframe
+c1 <- dp[,1]
+c2 <- dp[,2]
+
+# Creating a new data-frame with the day-parts and the number of sightings
+new <- data.frame(c1,c2) 
+
+
+
+# Importing the background image
+img <- readPNG("img7.png")
+
+# Customizing y-axis ticks
+ y_ticks <- c("Civil dawn", "Nautical dawn", "Astronomical dawn", "Civil dusk","Morning","Nautical dusk", "Astronomical dusk", "Afternoon", "Night")
+
+ 
+# Generating the plot
+ggplot(new) +
+    background_image(img)+
+  geom_bar_interactive(aes(x=c2,y = reorder(c1,c2), fill = c1),stat = "identity",color= "white",
+                       tooltip = c2, data_id = c2) +
+  #geom_text(aes(x=c2, y=c1, label=c2), vjust=1.6, color="white", size=5)+
+  theme_minimal()+
+  scale_fill_grey() +
+  scale_y_discrete(labels= y_ticks)+
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 20))+
+  labs(x = "\nNo. of sightings",
+       y = "Parts of the Day\n")+
+  theme(legend.position="none") +
+  transition_states(
+    c2,
+    transition_length = 2,
+    state_length = 1
+  ) +
+   shadow_mark() +
+  enter_fade()
+
+  
+
+
+```
+
+## Image overlay 2  {width="50%"}
+
+<h4 align="center">Image overlay 2 - Thank you plot</h4>
+
+```{r exercise1}
+
+
+#| title: "Image overlay 2 - Thank you plot"
+
+
+# Load necessary library
+
+library(ggpubr)
+library(ggplot2)
+library(sysfonts)
+#library(jpeg)
+library(png)
+
+library(showtextdb)
+library(showtext)
+#font_add_google("RubikGemstones", family = "RubikGemstones-Regular")
+
+font_add("RubikGemstones", "fonts/RubikGemstones-Regular.ttf")
+
+
+showtext_auto()
+img <- readPNG("bg7.png")
+
+
+
+# Creating sample data
+df <- data.frame(x=c(1, 3, 3, 5, 7, 8, 10, 20),
+                 y=c(3, 5, 7, 5, 8, 10, 14, 20))
+
+
+# Creating the  plot
+ggplot(df, aes(x=x, y=y)) +
+  background_image(img)+
+  geom_point(alpha=0)+
+  annotate("text", x=10, y=15, label= "Thank",size=60, family = "RubikGemstones",color="#386C4A") +
+  annotate("text", x=10, y=11, label= "You", size=60, family = "RubikGemstones", color="#386C4A")+
+  theme_void()
+  
+  
+  
+
+```

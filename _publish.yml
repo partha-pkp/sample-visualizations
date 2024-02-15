@@ -1,0 +1,4 @@
+- source: main.qmd
+  quarto-pub:
+    - id: 7bb52dd2-29de-4a48-b9c2-4a3f51e0e9af
+      url: 'https://partha-pkp.quarto.pub/sample-visualizations'
