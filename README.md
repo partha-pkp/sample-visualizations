@@ -1,2 +1,4 @@
-# sample-visualizations
-A few of my DataViz works
+# Sample Visualizations
+
+#### 👨‍💻 Hi there!! 👋
+Please find the dashboard containing some of my data visualizations [here](https://partha-pkp.quarto.pub/sample-visualizations/) 
